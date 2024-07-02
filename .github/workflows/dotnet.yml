@@ -22,8 +22,8 @@ jobs:
       with:
         dotnet-version: 8.0.x
     - name: Restore dependencies
-      run: dotnet restore ContentPlatform.sln
+      run: dotnet restore src/ContentPlatform/ContentPlatform.sln
     - name: Build
-      run: dotnet build --no-restore ContentPlatform.sln
+      run: dotnet build --no-restore src/ContentPlatform/ContentPlatform.sln
     - name: Test
-      run: dotnet test --no-build --verbosity normal ContentPlatform.sln
+      run: dotnet test --no-build --verbosity normal src/ContentPlatform/ContentPlatform.sln
