@@ -22,7 +22,7 @@ jobs:
       with:
         dotnet-version: 8.0.x
     - name: Restore workload
-      run: dotnet workload restore
+      run: dotnet workload restore --project src/ContentPlatform/AppHost/AppHost.csproj
     - name: Restore dependencies
       run: dotnet restore src/ContentPlatform/ContentPlatform.sln
     - name: Build
