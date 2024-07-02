@@ -1,0 +1,59 @@
+version: '3.4'
+
+services:
+  newsletter-api:
+    image: ${DOCKER_REGISTRY-}newsletter-api
+    container_name: Newsletter.Api
+    build:
+      context: .
+      dockerfile: Newsletter.Api/Dockerfile
+    ports:
+      - "5001:8081"
+      - "5101:8080"
+    environment:
+      OTEL_EXPORTER_OTLP_ENDPOINT: "http://newsletter-jaeger:4317"
+
+  newsletter-reporting-api:
+    image: ${DOCKER_REGISTRY-}newsletter-reporting-api
+    container_name: Newsletter.Reporting.Api
+    build:
+      context: .
+      dockerfile: Newsletter.Reporting.Api/Dockerfile
+    ports:
+      - "5002:8081"
+      - "5102:8080"
+    environment:
+      OTEL_EXPORTER_OTLP_ENDPOINT: "http://newsletter-jaeger:4317"
+
+  newsletter-db:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    container_name: Newsletter.Db
+    volumes:
+      - ./.containers/database:/var/opt/mssql/data
+    ports:
+      - "1433:1433"
+    environment:
+      ACCEPT_EULA: "Y"
+      SA_PASSWORD: "Strong_password_123!"
+
+  newsletter-mq:
+    image: rabbitmq:management
+    container_name: Newsletter.RabbitMq
+    hostname: newsletter-mq
+    volumes:
+      - ./.containers/queue/data/:/var/lib/rabbitmq
+      - ./.containers/queue/log/:/var/log/rabbitmq
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    environment:
+      RABBITMQ_DEFAULT_USER: guest
+      RABBITMQ_DEFAULT_PASS: guest
+
+  newsletter-jaeger:
+    image: jaegertracing/all-in-one:latest
+    container_name: Newsletter.Jaeger
+    ports:
+      - 4317:4317
+      - 4318:4318
+      - 16686:16686
