@@ -8,6 +8,7 @@ using Newsletter.Api.Extensions;
 using Npgsql;
 using OpenTelemetry.Trace;
 
+
 var builder = WebApplication.CreateBuilder(args);
 
 builder.AddServiceDefaults(metrics =>
@@ -75,6 +76,7 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 app.MapCarter();
+app.MapDefaultEndpoints();
 
 app.Run();
 

@@ -14,9 +14,12 @@ namespace Microsoft.Extensions.Hosting
     // To learn more about using this project, see https://aka.ms/dotnet/aspire/service-defaults
     public static class Extensions
     {
-        public static IHostApplicationBuilder AddServiceDefaults(this IHostApplicationBuilder builder, Action<TracerProviderBuilder> addToTracing = null)
+        public static IHostApplicationBuilder AddServiceDefaults(
+            this IHostApplicationBuilder builder,
+            Action<TracerProviderBuilder>? addToTracing = null,
+            Action<MeterProviderBuilder>? addToMetrics = null)
         {
-            builder.ConfigureOpenTelemetry(addToTracing);
+            builder.ConfigureOpenTelemetry(addToTracing, addToMetrics);
 
             builder.AddDefaultHealthChecks();
 
@@ -40,7 +43,7 @@ namespace Microsoft.Extensions.Hosting
             return builder;
         }
 
-        public static IHostApplicationBuilder ConfigureOpenTelemetry(this IHostApplicationBuilder builder, Action<TracerProviderBuilder> addToTracing = null)
+        public static IHostApplicationBuilder ConfigureOpenTelemetry(this IHostApplicationBuilder builder, Action<TracerProviderBuilder>? addToTracing = null, Action<MeterProviderBuilder>? addToMetrics = null)
         {
             builder.Logging.AddOpenTelemetry(logging =>
             {
@@ -55,6 +58,8 @@ namespace Microsoft.Extensions.Hosting
                     metrics.AddAspNetCoreInstrumentation()
                         .AddHttpClientInstrumentation()
                         .AddRuntimeInstrumentation();
+
+                    addToMetrics?.Invoke(metrics);
 
                 })
                 .WithTracing(tracing =>

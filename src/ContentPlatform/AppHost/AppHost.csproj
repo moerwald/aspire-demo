@@ -17,6 +17,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Newsletter.Api\Newsletter.Api.csproj" />
+    <ProjectReference Include="..\Newsletter.Metrics.Api\Newsletter.Metrics.Api.csproj" />
     <ProjectReference Include="..\Newsletter.Reporting.Api\Newsletter.Reporting.Api.csproj" />
   </ItemGroup>
 
