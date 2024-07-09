@@ -42,7 +42,7 @@ builder.Services.AddMassTransit(busConfigurator =>
     busConfigurator.SetKebabCaseEndpointNameFormatter();
     busConfigurator.UsingRabbitMq((context, configurator) =>
     {
-        _ = context
+        context
         .GetRequiredService<IConfiguration>()
         .ToResult("No config service registered")
         .Map(cfg =>
@@ -61,7 +61,8 @@ builder.Services.AddMassTransit(busConfigurator =>
                 return UnitResult.Success<string>();
             });
             return UnitResult.Success<string>();
-        });
+        })
+        .Match(_ => { }, error => Console.WriteLine(error));
     });
 });
 
