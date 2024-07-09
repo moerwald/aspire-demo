@@ -1,4 +1,5 @@
 using Carter;
+using CSharpFunctionalExtensions;
 using FluentValidation;
 using MassTransit;
 using Microsoft.EntityFrameworkCore;
@@ -7,6 +8,7 @@ using Newsletter.Reporting.Api.Database;
 using Newsletter.Reporting.Api.Extensions;
 using Npgsql;
 using OpenTelemetry.Trace;
+using ServiceDefault;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -40,32 +42,35 @@ builder.Services.AddMassTransit(busConfigurator =>
 {
     busConfigurator.SetKebabCaseEndpointNameFormatter();
 
-    busConfigurator.AddConsumer<ArticleCreatedConsumer>();
+    busConfigurator.AddConsumer<ArticleCreatedConsumer>().Endpoint(e =>
+    {
+        e.InstanceId = "article-created-newsletter-reporting-api";
+    });
+
     busConfigurator.AddConsumer<ArticleViewedConsumer>();
 
     busConfigurator.UsingRabbitMq((context, configurator) =>
     {
-        var cfg = context.GetRequiredService<IConfiguration>();
-        var uri = cfg.GetConnectionString("rabbitmq");
-
-        var uriObj = new Uri(uri);
-        string scheme = uriObj.Scheme; // "amqp"
-        string userInfo = uriObj.UserInfo; // "guest:UvEruDWYZSeC2skbsZTdWp"
-        string host = uriObj.Host; // "localhost"
-        int port = uriObj.Port; // 41695
-
-        // Split userInfo to get username and password
-        var userInfoParts = userInfo.Split(':');
-        string username = userInfoParts[0]; // "guest"
-        string password = userInfoParts.Length > 1 ? userInfoParts[1] : string.Empty; // "UvEruDWYZSeC2skbsZTdWp"
-
-        configurator.Host(uriObj, h =>
+        _ = context
+        .GetRequiredService<IConfiguration>()
+        .ToResult("No config service registered")
+        .Map(cfg =>
         {
-            h.Username(username);
-            h.Password(password);
+            RabbitMqUri
+            .From(cfg.GetConnectionString("rabbitmq"))
+            .Map((RabbitMqUri rabbitMqUri) =>
+            {
+                configurator.Host(
+                    rabbitMqUri.Uri, h =>
+                {
+                    h.Username(rabbitMqUri.Username);
+                    h.Password(rabbitMqUri.Password);
+                });
+                configurator.ConfigureEndpoints(context);
+                return UnitResult.Success<string>();
+            });
+            return UnitResult.Success<string>();
         });
-
-        configurator.ConfigureEndpoints(context);
     });
 });
 

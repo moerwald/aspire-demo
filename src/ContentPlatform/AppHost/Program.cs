@@ -1,15 +1,17 @@
 IDistributedApplicationBuilder builder = DistributedApplication.CreateBuilder(args);
 
+var username = builder.AddParameter("username", secret: true);
+var password = builder.AddParameter("password", secret: true);
 
 var databaseNewsLetterApiDb =
     builder
-    .AddPostgres("postgresDatabaseNewsLetterReportingApi")
+    .AddPostgres("postgresDatabaseNewsLetterReportingApi", username, password)
     .WithPgAdmin()
     .AddDatabase("NewsletterDb");
 
 var databaseNewsLetterReportingApiDb =
     builder
-    .AddPostgres("postgresDatabaseNewsLetterApi")
+    .AddPostgres("postgresDatabaseNewsLetterApi", username, password)
     .WithPgAdmin()
     .AddDatabase("NewsletterReportingDb");
 
