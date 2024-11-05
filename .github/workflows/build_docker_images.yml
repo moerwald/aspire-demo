@@ -1,0 +1,68 @@
+name: Build Docker Images
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+env:
+  IMAGE_REGISTRY: docker.io
+  IMAGE_NAME_PREFIX: my-aspire-demo
+  VERSION_FILE: version.txt
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    services:
+      docker:
+        image: docker:20.10.7
+        options: --privileged
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v3
+
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v2
+
+    - name: Log in to Docker Hub
+      uses: docker/login-action@v2
+      with:
+        username: ${{ secrets.DOCKER_USERNAME }}
+        password: ${{ secrets.DOCKER_PASSWORD }}
+
+    - name: Get and increment version number
+      id: version_step
+      run: |
+        if [ -f "$VERSION_FILE" ]; then
+          version=$(cat $VERSION_FILE)
+          version=$((version + 1))
+        else
+          version=1
+        fi
+        echo $version > $VERSION_FILE
+        echo "::set-output name=version::$version"
+
+    - name: Build Docker images for all applications
+      run: |
+        for app in src/ContentPlatform/Newsletter.Api src/ContentPlatform/Newsletter.Metrics.Api src/ContentPlatform/Newsletter.Reporting.Api; do
+          docker build -t $IMAGE_REGISTRY/$IMAGE_NAME_PREFIX-$(basename $app):${{ steps.version_step.outputs.version }} -f $app/Dockerfile ./$app
+        done
+
+    - name: Push Docker images to Docker Hub
+      run: |
+        for app in src/ContentPlatform/Newsletter.Api src/ContentPlatform/Newsletter.Metrics.Api src/ContentPlatform/Newsletter.Reporting.Api; do
+          docker push $IMAGE_REGISTRY/$IMAGE_NAME_PREFIX-$(basename $app):${{ steps.version_step.outputs.version }}
+        done
+
+    - name: Commit updated version number
+      run: |
+        git config --global user.name "github-actions"
+        git config --global user.email "github-actions@github.com"
+        git add $VERSION_FILE
+        git commit -m "Increment version number to ${{ steps.version_step.outputs.version }}"
+        git push origin main
