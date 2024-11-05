@@ -9,7 +9,7 @@ on:
       - main
 
 env:
-  IMAGE_REGISTRY: docker.io
+  IMAGE_REGISTRY: docker.io/moerwald33
   IMAGE_NAME_PREFIX: my-aspire-demo
   VERSION_FILE: version.txt
 
