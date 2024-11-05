@@ -65,4 +65,4 @@ jobs:
         git config --global user.email "github-actions@github.com"
         git add $VERSION_FILE
         git commit -m "Increment version number to ${{ steps.version_step.outputs.version }}"
-        git push origin main
+        git push https://x-access-token:${{ secrets.PAT_TOKEN }}@github.com/moerwald/aspire-demo.git main
