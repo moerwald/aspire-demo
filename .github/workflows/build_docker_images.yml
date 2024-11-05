@@ -50,7 +50,7 @@ jobs:
     - name: Build Docker images for all applications
       run: |
         for app in src/ContentPlatform/Newsletter.Api src/ContentPlatform/Newsletter.Metrics.Api src/ContentPlatform/Newsletter.Reporting.Api; do
-          docker build -t $IMAGE_REGISTRY/$IMAGE_NAME_PREFIX-$(basename $app | tr '[:upper:]' '[:lower:]'):${{ steps.version_step.outputs.version }} -f $app/Dockerfile ./$app
+          docker build -t $IMAGE_REGISTRY/$IMAGE_NAME_PREFIX-$(basename $app | tr '[:upper:]' '[:lower:]'):${{ steps.version_step.outputs.version }} -f $app/Dockerfile $(dirname $app)
         done
 
     - name: Push Docker images to Docker Hub
