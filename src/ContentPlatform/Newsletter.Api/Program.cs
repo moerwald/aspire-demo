@@ -13,14 +13,13 @@ using ServiceDefault;
 
 var builder = WebApplication.CreateBuilder(args);
 
-//builder.AddServiceDefaults(metrics =>
-//{
-//    metrics
-//    .AddSqlClientInstrumentation()
-//    .AddSource(MassTransit.Logging.DiagnosticHeaders.DefaultListenerName)
-//    .AddNpgsql();
-//});
-
+builder.AddServiceDefaults(metrics =>
+{
+    metrics
+    .AddSqlClientInstrumentation()
+    .AddSource(MassTransit.Logging.DiagnosticHeaders.DefaultListenerName)
+    .AddNpgsql();
+});
 
 // Dienstkonfiguration
 builder.Services.AddEndpointsApiExplorer();
