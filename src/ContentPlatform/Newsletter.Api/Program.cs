@@ -73,8 +73,16 @@ var logger = app.Services.GetRequiredService<ILogger<Program>>();
 
 if (app.Environment.IsDevelopment())
 {
-    logger.LogInformation("Apply migrations");
-    app.ApplyMigrations((exception, retry) => logger.LogWarning("Migration failed {Retry} times. Problem {Problem}", retry, exception));
+    try
+    {
+        logger.LogInformation("Apply migrations");
+        app.ApplyMigrations((exception, retry) => logger.LogWarning("Migration failed {Retry} times. Problem {Problem}", retry, exception));
+    }
+    catch (Exception ex)
+    {
+        logger.LogError("Apply migrations failed {Exception}", ex);
+    }
+
     logger.LogInformation("Use Swagger");
     app.UseSwagger();
     logger.LogInformation("Use Swagger UI");
