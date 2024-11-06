@@ -4,6 +4,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.Extensions.Logging;
 using OpenTelemetry;
+using OpenTelemetry.Logs;
 using OpenTelemetry.Metrics;
 using OpenTelemetry.Trace;
 
@@ -17,9 +18,10 @@ namespace Microsoft.Extensions.Hosting
         public static IHostApplicationBuilder AddServiceDefaults(
             this IHostApplicationBuilder builder,
             Action<TracerProviderBuilder>? addToTracing = null,
-            Action<MeterProviderBuilder>? addToMetrics = null)
+            Action<MeterProviderBuilder>? addToMetrics = null,
+            string? serviceName = null)
         {
-            builder.ConfigureOpenTelemetry(addToTracing, addToMetrics);
+            builder.ConfigureOpenTelemetry(addToTracing, addToMetrics, serviceName);
 
             builder.AddDefaultHealthChecks();
 
@@ -43,12 +45,16 @@ namespace Microsoft.Extensions.Hosting
             return builder;
         }
 
-        public static IHostApplicationBuilder ConfigureOpenTelemetry(this IHostApplicationBuilder builder, Action<TracerProviderBuilder>? addToTracing = null, Action<MeterProviderBuilder>? addToMetrics = null)
+        public static IHostApplicationBuilder ConfigureOpenTelemetry(
+            this IHostApplicationBuilder builder,
+            Action<TracerProviderBuilder>? addToTracing = null,
+            Action<MeterProviderBuilder>? addToMetrics = null,
+            string? service = null)
         {
-            builder.Logging.AddOpenTelemetry(logging =>
+            builder.Logging.AddOpenTelemetry(options =>
             {
-                logging.IncludeFormattedMessage = true;
-                logging.IncludeScopes = true;
+                options.IncludeFormattedMessage = true;
+                options.IncludeScopes = true;
             });
 
 
@@ -64,10 +70,15 @@ namespace Microsoft.Extensions.Hosting
                 })
                 .WithTracing(tracing =>
                 {
-                    tracing.AddAspNetCoreInstrumentation()
+                    tracing
+                        .AddAspNetCoreInstrumentation()
                         // Uncomment the following line to enable gRPC instrumentation (requires the OpenTelemetry.Instrumentation.GrpcNetClient package)
                         //.AddGrpcClientInstrumentation()
                         .AddHttpClientInstrumentation();
+
+                    if (service is not null)
+                        tracing.AddSource(service);
+
                     addToTracing?.Invoke(tracing);
                 });
 
@@ -78,11 +89,14 @@ namespace Microsoft.Extensions.Hosting
 
         private static IHostApplicationBuilder AddOpenTelemetryExporters(this IHostApplicationBuilder builder)
         {
-            var useOtlpExporter = !string.IsNullOrWhiteSpace(builder.Configuration["OTEL_EXPORTER_OTLP_ENDPOINT"]);
+            var endpoint = builder.Configuration["OTEL_EXPORTER_OTLP_ENDPOINT"];
+            var useOtlpExporter = !string.IsNullOrWhiteSpace(endpoint);
 
             if (useOtlpExporter)
             {
                 builder.Services.AddOpenTelemetry().UseOtlpExporter();
+                builder.Logging.AddOpenTelemetry(options =>
+                options.AddOtlpExporter(options => options.Endpoint = new Uri(endpoint)));
             }
 
             // Uncomment the following lines to enable the Azure Monitor exporter (requires the Azure.Monitor.OpenTelemetry.AspNetCore package)
