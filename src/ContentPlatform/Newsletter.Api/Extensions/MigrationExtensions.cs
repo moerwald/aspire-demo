@@ -13,6 +13,12 @@ public static class MigrationExtensions
 
         var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
 
+        var pendingMigrations = dbContext.Database.GetPendingMigrations();
+        if (!pendingMigrations.Any())
+        {
+            return;
+        }
+
         RetryPolicy retryPolicy = Policy
            .Handle<Exception>()
            .WaitAndRetry(3, retryAttempt =>
