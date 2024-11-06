@@ -95,8 +95,6 @@ namespace Microsoft.Extensions.Hosting
             if (useOtlpExporter)
             {
                 builder.Services.AddOpenTelemetry().UseOtlpExporter();
-                builder.Logging.AddOpenTelemetry(options =>
-                options.AddOtlpExporter(options => options.Endpoint = new Uri(endpoint)));
             }
 
             // Uncomment the following lines to enable the Azure Monitor exporter (requires the Azure.Monitor.OpenTelemetry.AspNetCore package)
