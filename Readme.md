@@ -7,4 +7,4 @@ The two-service approach is used to check:
 
 - How Aspire can be used to spin up the two APIs, including their dependencies.
 - If Aspire is capable of setting up the internal network between the two services.
-- If Aspire is able to collect open telemetry data from the two services.
+- If Aspire is able to collect open telemetry data from the two services.   
