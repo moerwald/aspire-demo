@@ -13,13 +13,13 @@ using ServiceDefault;
 
 var builder = WebApplication.CreateBuilder(args);
 
-builder.AddServiceDefaults(metrics =>
-{
-    metrics
-    .AddSqlClientInstrumentation()
-    .AddSource(MassTransit.Logging.DiagnosticHeaders.DefaultListenerName)
-    .AddNpgsql();
-});
+//builder.AddServiceDefaults(metrics =>
+//{
+//    metrics
+//    .AddSqlClientInstrumentation()
+//    .AddSource(MassTransit.Logging.DiagnosticHeaders.DefaultListenerName)
+//    .AddNpgsql();
+//});
 
 
 // Dienstkonfiguration
@@ -71,12 +71,12 @@ var app = builder.Build();
 if (app.Environment.IsDevelopment())
 {
     app.ApplyMigrations();
+    app.UseSwagger();
+    app.UseSwaggerUI();
 }
 
-app.UseSwagger();
-app.UseSwaggerUI();
 
-//app.UseHttpsRedirection();
+// app.UseHttpsRedirection();
 app.MapCarter();
 app.MapDefaultEndpoints();
 
