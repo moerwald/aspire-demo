@@ -68,18 +68,27 @@ builder.Services.AddMassTransit(busConfigurator =>
 
 var app = builder.Build();
 
+var logger = app.Services.GetRequiredService<ILogger<Program>>();
+
+
 if (app.Environment.IsDevelopment())
 {
+    logger.LogInformation("Apply migrations");
     app.ApplyMigrations();
+    logger.LogInformation("Use Swagger");
     app.UseSwagger();
+    logger.LogInformation("Use Swagger UI");
     app.UseSwaggerUI();
 }
 
 
 // app.UseHttpsRedirection();
+logger.LogInformation("Map Carter");
 app.MapCarter();
+logger.LogInformation("Map Default Endpoints");
 app.MapDefaultEndpoints();
 
+logger.LogInformation("Run");
 app.Run();
 
 
