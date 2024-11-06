@@ -6,6 +6,7 @@ using Microsoft.Extensions.Logging;
 using OpenTelemetry;
 using OpenTelemetry.Logs;
 using OpenTelemetry.Metrics;
+using OpenTelemetry.Resources;
 using OpenTelemetry.Trace;
 
 namespace Microsoft.Extensions.Hosting
@@ -77,7 +78,7 @@ namespace Microsoft.Extensions.Hosting
                         .AddHttpClientInstrumentation();
 
                     if (service is not null)
-                        tracing.AddSource(service);
+                        tracing.SetResourceBuilder(ResourceBuilder.CreateDefault().AddService(service));
 
                     addToTracing?.Invoke(tracing);
                 });

@@ -19,7 +19,7 @@ builder.AddServiceDefaults(metrics =>
     .AddSqlClientInstrumentation()
     .AddSource(MassTransit.Logging.DiagnosticHeaders.DefaultListenerName)
     .AddNpgsql();
-});
+}, serviceName: "Newsletter-API");
 
 // Dienstkonfiguration
 builder.Services.AddEndpointsApiExplorer();
