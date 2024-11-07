@@ -26,7 +26,7 @@ builder.Services.AddSwaggerGen();
 
 builder.Services.AddDbContext<ApplicationDbContext>(o =>
 {
-    var cs = builder.Configuration.GetConnectionString("NewsletterReportingDb");
+    var cs = builder.Configuration.GetConnectionString("Database");
     o.UseNpgsql(cs);
 });
 
