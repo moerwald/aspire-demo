@@ -54,6 +54,7 @@ namespace Microsoft.Extensions.Hosting
             {
                 options.IncludeFormattedMessage = true;
                 options.IncludeScopes = true;
+                options.AddOtlpExporter();
             });
 
 
@@ -79,7 +80,7 @@ namespace Microsoft.Extensions.Hosting
                     addToTracing?.Invoke(tracing);
                 });
 
-            otel.ConfigureResource(resource => resource .AddService(serviceName: builder.Environment.ApplicationName));
+            otel.ConfigureResource(resource => resource.AddService(serviceName: builder.Environment.ApplicationName));
 
 
             builder.AddOpenTelemetryExporters();
