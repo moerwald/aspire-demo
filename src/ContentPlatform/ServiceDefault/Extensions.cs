@@ -19,10 +19,9 @@ namespace Microsoft.Extensions.Hosting
         public static IHostApplicationBuilder AddServiceDefaults(
             this IHostApplicationBuilder builder,
             Action<TracerProviderBuilder>? addToTracing = null,
-            Action<MeterProviderBuilder>? addToMetrics = null,
-            string? serviceName = null)
+            Action<MeterProviderBuilder>? addToMetrics = null)
         {
-            builder.ConfigureOpenTelemetry(addToTracing, addToMetrics, serviceName);
+            builder.ConfigureOpenTelemetry(addToTracing, addToMetrics);
 
             builder.AddDefaultHealthChecks();
 
@@ -49,8 +48,7 @@ namespace Microsoft.Extensions.Hosting
         public static IHostApplicationBuilder ConfigureOpenTelemetry(
             this IHostApplicationBuilder builder,
             Action<TracerProviderBuilder>? addToTracing = null,
-            Action<MeterProviderBuilder>? addToMetrics = null,
-            string? service = null)
+            Action<MeterProviderBuilder>? addToMetrics = null)
         {
             builder.Logging.AddOpenTelemetry(options =>
             {
@@ -59,7 +57,7 @@ namespace Microsoft.Extensions.Hosting
             });
 
 
-            builder.Services.AddOpenTelemetry()
+            var otel = builder.Services.AddOpenTelemetry()
                 .WithMetrics(metrics =>
                 {
                     metrics.AddAspNetCoreInstrumentation()
@@ -71,11 +69,6 @@ namespace Microsoft.Extensions.Hosting
                 })
                 .WithTracing(tracing =>
                 {
-                    if (service is not null)
-                    {
-                        tracing.SetResourceBuilder(ResourceBuilder.CreateDefault().AddService(service));
-                    }
-
                     tracing
                         .AddAspNetCoreInstrumentation()
                         // Uncomment the following line to enable gRPC instrumentation (requires the OpenTelemetry.Instrumentation.GrpcNetClient package)
@@ -85,6 +78,9 @@ namespace Microsoft.Extensions.Hosting
 
                     addToTracing?.Invoke(tracing);
                 });
+
+            otel.ConfigureResource(resource => resource .AddService(serviceName: builder.Environment.ApplicationName));
+
 
             builder.AddOpenTelemetryExporters();
 
