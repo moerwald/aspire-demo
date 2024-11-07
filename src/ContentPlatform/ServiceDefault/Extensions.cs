@@ -50,14 +50,17 @@ namespace Microsoft.Extensions.Hosting
             Action<TracerProviderBuilder>? addToTracing = null,
             Action<MeterProviderBuilder>? addToMetrics = null)
         {
+
+            var appName = builder.Environment.ApplicationName;
             builder.Logging.AddOpenTelemetry(options =>
             {
                 options.IncludeFormattedMessage = true;
                 options.IncludeScopes = true;
+                options.SetResourceBuilder(ResourceBuilder.CreateDefault().AddService(appName));
             });
 
-
-            var otel = builder.Services.AddOpenTelemetry()
+            builder.Services.AddOpenTelemetry()
+                .ConfigureResource(resource => resource.AddService(appName))
                 .WithMetrics(metrics =>
                 {
                     metrics.AddAspNetCoreInstrumentation()
@@ -79,7 +82,6 @@ namespace Microsoft.Extensions.Hosting
                     addToTracing?.Invoke(tracing);
                 });
 
-            otel.ConfigureResource(resource => resource.AddService(serviceName: builder.Environment.ApplicationName));
 
 
             builder.AddOpenTelemetryExporters();
