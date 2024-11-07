@@ -71,14 +71,17 @@ namespace Microsoft.Extensions.Hosting
                 })
                 .WithTracing(tracing =>
                 {
+                    if (service is not null)
+                    {
+                        tracing.SetResourceBuilder(ResourceBuilder.CreateDefault().AddService(service));
+                    }
+
                     tracing
                         .AddAspNetCoreInstrumentation()
                         // Uncomment the following line to enable gRPC instrumentation (requires the OpenTelemetry.Instrumentation.GrpcNetClient package)
                         //.AddGrpcClientInstrumentation()
                         .AddHttpClientInstrumentation();
 
-                    if (service is not null)
-                        tracing.SetResourceBuilder(ResourceBuilder.CreateDefault().AddService(service));
 
                     addToTracing?.Invoke(tracing);
                 });
