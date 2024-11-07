@@ -54,7 +54,6 @@ namespace Microsoft.Extensions.Hosting
             {
                 options.IncludeFormattedMessage = true;
                 options.IncludeScopes = true;
-                options.AddOtlpExporter();
             });
 
 
