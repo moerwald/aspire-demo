@@ -79,6 +79,11 @@ public static class CreateArticle
                 await Task.Delay(1500);
             }
 
+            if (request.Title == "faulty article")
+            {
+                throw new ArgumentException("Title not is invalid");
+            }
+
             using var activity = _diagnosticsConfig.Source.StartActivity(
                 "Create Article",
                 kind: ActivityKind.Internal,
@@ -97,13 +102,13 @@ public static class CreateArticle
                 Tags = request.Tags,
                 CreatedOnUtc = DateTime.UtcNow
             };
+            activity!.SetTag("article.id", article.Id);
 
             _dbContext.Add(article);
 
             await _dbContext.SaveChangesAsync(cancellationToken);
             _logger.LogInformation("Article written to DB. {Article}", article);
 
-            activity!.SetTag("article.id", article.Id);
 
             await _publishEndpoint.Publish(
                 new ArticleCreatedEvent
