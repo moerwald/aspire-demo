@@ -7,6 +7,7 @@ using MediatR;
 using Newsletter.Api.Database;
 using Newsletter.Api.Entities;
 using Newsletter.Api.Shared;
+using System.Diagnostics;
 
 namespace Newsletter.Api.Articles;
 
@@ -45,17 +46,20 @@ public static class CreateArticle
         private readonly IValidator<Command> _validator;
         private readonly IPublishEndpoint _publishEndpoint;
         private readonly ILogger<Handler> _logger;
+        private readonly DiagnosticsConfig _diagnosticsConfig;
 
         public Handler(
             ApplicationDbContext dbContext,
             IValidator<Command> validator,
             IPublishEndpoint publishEndpoint,
-            ILogger<Handler> logger)
+            ILogger<Handler> logger,
+            DiagnosticsConfig diagnosticsConfig)
         {
             _dbContext = dbContext;
             _validator = validator;
             _publishEndpoint = publishEndpoint;
             _logger = logger;
+            _diagnosticsConfig = diagnosticsConfig;
         }
 
         public async Task<Result<Guid>> Handle(Command request, CancellationToken cancellationToken)
@@ -67,7 +71,23 @@ public static class CreateArticle
                     "CreateArticle.Validation",
                     validationResult.ToString()));
             }
+
             _logger.LogInformation("Validation is ok");
+
+            if (request.Title == "boring article")
+            {
+                await Task.Delay(1500);
+            }
+
+            using var activity = _diagnosticsConfig.Source.StartActivity(
+                "Create Article",
+                kind: ActivityKind.Internal,
+                Activity.Current?.Id,
+                [
+                    new ("article.title", request.Title ),
+                    new ("article.tags", request.Tags ),
+                    new ("article.content", request.Content ),
+                ]);
 
             var article = new Article
             {
@@ -81,7 +101,9 @@ public static class CreateArticle
             _dbContext.Add(article);
 
             await _dbContext.SaveChangesAsync(cancellationToken);
-            _logger.LogInformation($"Article written to DB. {article}");
+            _logger.LogInformation("Article written to DB. {Article}", article);
+
+            activity!.SetTag("article.id", article.Id);
 
             await _publishEndpoint.Publish(
                 new ArticleCreatedEvent

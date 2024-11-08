@@ -4,6 +4,7 @@ using CSharpFunctionalExtensions;
 using FluentValidation;
 using MassTransit;
 using Microsoft.EntityFrameworkCore;
+using Newsletter.Api;
 using Newsletter.Api.Database;
 using Newsletter.Api.Extensions;
 using Npgsql;
@@ -12,6 +13,8 @@ using ServiceDefault;
 
 
 var builder = WebApplication.CreateBuilder(args);
+
+builder.Services.AddSingleton(new DiagnosticsConfig());
 
 builder.AddServiceDefaults(metrics =>
 {
