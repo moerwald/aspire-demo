@@ -102,7 +102,8 @@ public static class CreateArticle
                 Tags = request.Tags,
                 CreatedOnUtc = DateTime.UtcNow
             };
-            activity!.SetTag("article.id", article.Id);
+
+            activity?.SetTag("article.id", article.Id);
 
             _dbContext.Add(article);
 
