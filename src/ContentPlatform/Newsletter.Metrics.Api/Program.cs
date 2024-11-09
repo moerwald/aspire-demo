@@ -8,6 +8,7 @@ var builder = WebApplication.CreateBuilder(args);
 
 
 builder.AddServiceDefaults(
+    builder.Environment.ApplicationName,
     traces => traces.AddSource(MassTransit.Logging.DiagnosticHeaders.DefaultListenerName),
     meter => meter.AddMeter(DiagnosticsConfig.Meter.Name));
 

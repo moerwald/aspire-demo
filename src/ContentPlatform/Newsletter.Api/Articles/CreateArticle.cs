@@ -46,14 +46,14 @@ public static class CreateArticle
         private readonly IValidator<Command> _validator;
         private readonly IPublishEndpoint _publishEndpoint;
         private readonly ILogger<Handler> _logger;
-        private readonly DiagnosticsConfig _diagnosticsConfig;
+        private readonly Instrumentation _diagnosticsConfig;
 
         public Handler(
             ApplicationDbContext dbContext,
             IValidator<Command> validator,
             IPublishEndpoint publishEndpoint,
             ILogger<Handler> logger,
-            DiagnosticsConfig diagnosticsConfig)
+            Instrumentation diagnosticsConfig)
         {
             _dbContext = dbContext;
             _validator = validator;

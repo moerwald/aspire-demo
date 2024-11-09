@@ -14,9 +14,10 @@ using ServiceDefault;
 
 var builder = WebApplication.CreateBuilder(args);
 
-builder.Services.AddSingleton(new DiagnosticsConfig());
+var appName = builder.Environment.ApplicationName;
+builder.Services.AddSingleton(new Instrumentation(appName));
 
-builder.AddServiceDefaults(metrics =>
+builder.AddServiceDefaults(appName, metrics =>
 {
     metrics
     .AddSqlClientInstrumentation()
