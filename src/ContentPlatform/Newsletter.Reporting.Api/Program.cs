@@ -11,8 +11,9 @@ using OpenTelemetry.Trace;
 using ServiceDefault;
 
 var builder = WebApplication.CreateBuilder(args);
+var appName = builder.Environment.ApplicationName;
 
-builder.AddServiceDefaults(metrics =>
+builder.AddServiceDefaults(appName, metrics =>
 {
     metrics
     .AddSqlClientInstrumentation()
