@@ -91,6 +91,10 @@ public static class CreateArticle
                 {
                     if (request.Title == "boring article")
                     {
+                        using var activityBoring = _diagnosticsConfig.Source.StartActivity(
+                            "Handle boring article",
+                            kind: ActivityKind.Internal,
+                            Activity.Current?.Id);
                         await Task.Delay(1500);
                     }
 
@@ -131,7 +135,7 @@ public static class CreateArticle
                 {
                     activity?.SetStatus(ActivityStatusCode.Error, "Something bad happened!");
                     activity?.RecordException(ex);
-                    return Guid.Empty;
+                    throw;
                 }
             }
         }
