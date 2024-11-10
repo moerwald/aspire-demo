@@ -7,6 +7,7 @@ using MediatR;
 using Newsletter.Api.Database;
 using Newsletter.Api.Entities;
 using Newsletter.Api.Shared;
+using OpenTelemetry.Trace;
 using System.Diagnostics;
 
 namespace Newsletter.Api.Articles;
@@ -74,53 +75,65 @@ public static class CreateArticle
 
             _logger.LogInformation("Validation is ok");
 
-            if (request.Title == "boring article")
-            {
-                await Task.Delay(1500);
-            }
 
-            if (request.Title == "faulty article")
-            {
-                throw new ArgumentException("Title not is invalid");
-            }
-
-            using var activity = _diagnosticsConfig.Source.StartActivity(
+            using (var activity = _diagnosticsConfig.Source.StartActivity(
                 "Create Article",
                 kind: ActivityKind.Internal,
                 Activity.Current?.Id,
+                tags:
                 [
                     new ("article.title", request.Title ),
                     new ("article.tags", request.Tags ),
                     new ("article.content", request.Content ),
-                ]);
-
-            var article = new Article
+                ]))
             {
-                Id = Guid.NewGuid(),
-                Title = request.Title,
-                Content = request.Content,
-                Tags = request.Tags,
-                CreatedOnUtc = DateTime.UtcNow
-            };
-
-            activity?.SetTag("article.id", article.Id);
-
-            _dbContext.Add(article);
-
-            await _dbContext.SaveChangesAsync(cancellationToken);
-            _logger.LogInformation("Article written to DB. {Article}", article);
-
-
-            await _publishEndpoint.Publish(
-                new ArticleCreatedEvent
+                try
                 {
-                    Id = article.Id,
-                    CreatedOnUtc = article.CreatedOnUtc
-                },
-                cancellationToken);
-            _logger.LogInformation("Article published to bus");
+                    if (request.Title == "boring article")
+                    {
+                        await Task.Delay(1500);
+                    }
 
-            return article.Id;
+                    if (request.Title == "faulty article")
+                    {
+                        throw new ArgumentException("Title not is invalid");
+                    }
+
+                    var article = new Article
+                    {
+                        Id = Guid.NewGuid(),
+                        Title = request.Title,
+                        Content = request.Content,
+                        Tags = request.Tags,
+                        CreatedOnUtc = DateTime.UtcNow
+                    };
+
+                    activity?.SetTag("article.id", article.Id);
+                    _dbContext.Add(article);
+
+                    await _dbContext.SaveChangesAsync(cancellationToken);
+                    _logger.LogInformation("Article written to DB. {Article}", article);
+
+
+                    await _publishEndpoint.Publish(
+                        new ArticleCreatedEvent
+                        {
+                            Id = article.Id,
+                            CreatedOnUtc = article.CreatedOnUtc
+                        },
+                        cancellationToken);
+                    _logger.LogInformation("Article published to bus");
+
+
+                    return article.Id;
+                }
+                catch (Exception ex)
+                {
+                    activity?.SetStatus(ActivityStatusCode.Error, "Something bad happened!");
+                    activity?.RecordException(ex);
+                    return Guid.Empty;
+                }
+            }
         }
     }
 }
