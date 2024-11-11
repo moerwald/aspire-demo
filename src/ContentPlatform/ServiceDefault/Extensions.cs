@@ -56,6 +56,7 @@ namespace Microsoft.Extensions.Hosting
                 options.IncludeFormattedMessage = true;
                 options.IncludeScopes = true;
                 options.SetResourceBuilder(ResourceBuilder.CreateDefault().AddService(appName));
+                options.AttachLogsToActivityEvent();
             });
 
             builder.Services.AddOpenTelemetry()
