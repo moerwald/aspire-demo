@@ -152,7 +152,7 @@ public class CreateArticleEndpoint : ICarterModule
         app.MapPost("api/articles", async (HttpContext context, CreateArticle.Request request, ISender sender) =>
         {
             var command = request.Adapt<CreateArticle.Command>();
-            command.Activity = context.Features.GetRequiredFeature<IHttpActivityFeature>()?.Activity ?? Activity.Current;
+            command.Activity = context.Features.GetRequiredFeature<IHttpActivityFeature>()?.Activity;
 
             var result = await sender.Send(command);
 
