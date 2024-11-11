@@ -4,10 +4,12 @@ using FluentValidation;
 using Mapster;
 using MassTransit;
 using MediatR;
+using Microsoft.AspNetCore.Http.Features;
 using Newsletter.Api.Database;
 using Newsletter.Api.Entities;
 using Newsletter.Api.Shared;
 using OpenTelemetry.Trace;
+using Polly;
 using System.Diagnostics;
 
 namespace Newsletter.Api.Articles;
@@ -30,6 +32,8 @@ public static class CreateArticle
         public string Content { get; set; } = string.Empty;
 
         public List<string> Tags { get; set; } = new();
+
+        public Activity Activity { get; set; }
     }
 
     public class Validator : AbstractValidator<Command>
@@ -75,11 +79,10 @@ public static class CreateArticle
 
             _logger.LogInformation("Validation is ok");
 
-
             using (var activity = _diagnosticsConfig.Source.StartActivity(
                 "Create Article",
                 kind: ActivityKind.Internal,
-                Activity.Current?.Id,
+                request.Activity.Id,
                 tags:
                 [
                     new ("article.title", request.Title ),
@@ -146,9 +149,10 @@ public class CreateArticleEndpoint : ICarterModule
 {
     public void AddRoutes(IEndpointRouteBuilder app)
     {
-        app.MapPost("api/articles", async (CreateArticle.Request request, ISender sender) =>
+        app.MapPost("api/articles", async (HttpContext context, CreateArticle.Request request, ISender sender) =>
         {
             var command = request.Adapt<CreateArticle.Command>();
+            command.Activity = context.Features.GetRequiredFeature<IHttpActivityFeature>()?.Activity ?? Activity.Current;
 
             var result = await sender.Send(command);
 
