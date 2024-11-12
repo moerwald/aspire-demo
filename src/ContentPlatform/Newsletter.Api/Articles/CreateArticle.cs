@@ -98,6 +98,7 @@ public static class CreateArticle
                             "Handle boring article",
                             kind: ActivityKind.Internal,
                             Activity.Current?.Id);
+
                         await Task.Delay(1500);
                     }
 
