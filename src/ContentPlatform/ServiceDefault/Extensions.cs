@@ -56,7 +56,10 @@ namespace Microsoft.Extensions.Hosting
                 options.IncludeFormattedMessage = true;
                 options.IncludeScopes = true;
                 options.SetResourceBuilder(ResourceBuilder.CreateDefault().AddService(appName));
-                options.AttachLogsToActivityEvent();
+                if (builder.Environment.IsDevelopment())
+                {
+                    options.AttachLogsToActivityEvent();
+                }
             });
 
             builder.Services.AddOpenTelemetry()
@@ -94,7 +97,6 @@ namespace Microsoft.Extensions.Hosting
         {
             var endpoint = builder.Configuration["OTEL_EXPORTER_OTLP_ENDPOINT"];
             var useOtlpExporter = !string.IsNullOrWhiteSpace(endpoint);
-
             if (useOtlpExporter)
             {
                 builder.Services.AddOpenTelemetry().UseOtlpExporter();
