@@ -77,7 +77,7 @@ public static class CreateArticle
                     validationResult.ToString()));
             }
 
-            _logger.LogInformation("Validation is ok");
+            _logger.LogInformation("Validation is ok. Request-Title {Title}", request.Title);
 
             using (var activity = _diagnosticsConfig.Source.StartActivity(
                 "Create Article",
@@ -130,7 +130,7 @@ public static class CreateArticle
                             CreatedOnUtc = article.CreatedOnUtc
                         },
                         cancellationToken);
-                    _logger.LogInformation("Article published to bus");
+                    _logger.LogInformation("Article (id: {Id}) published to bus", article.Id);
 
 
                     return article.Id;
